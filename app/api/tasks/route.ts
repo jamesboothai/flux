@@ -47,15 +47,22 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Build insert object conditionally (parent_task_id column may not exist yet)
+  const insertData: any = {
+    content,
+    day_of_week,
+    week_offset,
+    completed: false,
+  };
+
+  // Only include parent_task_id if provided (requires migration to be run)
+  if (parent_task_id) {
+    insertData.parent_task_id = parent_task_id;
+  }
+
   const { data, error } = await supabase
     .from("weekly_tasks")
-    .insert({
-      content,
-      day_of_week,
-      week_offset,
-      parent_task_id: parent_task_id || null,
-      completed: false,
-    })
+    .insert(insertData)
     .select()
     .single();
 
