@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ThemeProvider, useTheme, colors } from "@/lib/theme";
 
 function FluxInner({
@@ -11,7 +12,10 @@ function FluxInner({
   children: React.ReactNode;
 }) {
   const { theme, toggle } = useTheme();
+  const pathname = usePathname();
   const c = colors(theme);
+
+  const isTasksPage = pathname === "/tasks";
 
   return (
     <div
@@ -49,11 +53,11 @@ function FluxInner({
       </main>
 
       <Link
-        href="/tasks"
+        href={isTasksPage ? "/" : "/tasks"}
         className="fixed bottom-6 left-6 text-[10px] tracking-wider hover:opacity-70 transition-opacity cursor-pointer"
         style={{ color: c.faint }}
       >
-        tasks
+        {isTasksPage ? "dump" : "tasks"}
       </Link>
 
       <button

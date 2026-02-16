@@ -43,10 +43,7 @@ export default async function TasksPage() {
   return (
     <ScreenToggle>
       <FluxShell logoutAction={logout}>
-        <div className="space-y-12">
-          <WeeklyPlanner initialTasks={tasks} />
-          <GoalsSection initialGoals={goals} />
-        </div>
+        <WeeklyPlanner initialTasks={tasks} initialGoals={goals} />
       </FluxShell>
     </ScreenToggle>
   );

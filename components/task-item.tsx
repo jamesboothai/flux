@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, KeyboardEvent } from "react";
+import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
 import { motion } from "framer-motion";
 import { useTheme, colors } from "@/lib/theme";
 
@@ -12,6 +12,8 @@ export interface WeeklyTask {
   completed: boolean;
   created_at: string;
   updated_at: string | null;
+  parent_task_id: string | null;
+  subtasks?: WeeklyTask[];
 }
 
 interface TaskItemProps {
@@ -19,8 +21,10 @@ interface TaskItemProps {
   onToggle: (id: string, completed: boolean) => void;
   onEdit: (id: string, content: string) => void;
   onDelete: (id: string) => void;
+  onAddSubtask?: (parentId: string, content: string) => void;
   isNew?: boolean;
   compact?: boolean;
+  depth?: number;
 }
 
 export function TaskItem({
@@ -28,12 +32,16 @@ export function TaskItem({
   onToggle,
   onEdit,
   onDelete,
+  onAddSubtask,
   isNew,
   compact = false,
+  depth = 0,
 }: TaskItemProps) {
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(task.content);
   const [showActions, setShowActions] = useState(false);
+  const [showSubtaskInput, setShowSubtaskInput] = useState(false);
+  const [subtaskContent, setSubtaskContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { theme } = useTheme();
   const c = colors(theme);
@@ -64,6 +72,13 @@ export function TaskItem({
       setEditing(false);
     }
   }
+
+  const handleAddSubtask = useCallback(() => {
+    if (!subtaskContent.trim() || !onAddSubtask) return;
+    onAddSubtask(task.id, subtaskContent.trim());
+    setSubtaskContent("");
+    setShowSubtaskInput(false);
+  }, [subtaskContent, onAddSubtask, task.id]);
 
   return (
     <motion.div
@@ -145,6 +160,68 @@ export function TaskItem({
             )}
           </div>
         </>
+      )}
+
+      {/* Subtask UI - only show if not editing and not compact */}
+      {!editing && !compact && onAddSubtask && (
+        <div className="ml-6 mt-2">
+          {!showSubtaskInput ? (
+            <button
+              onClick={() => setShowSubtaskInput(true)}
+              className="text-[10px] hover:opacity-70 transition-opacity"
+              style={{ color: c.faint }}
+            >
+              + add subtask
+            </button>
+          ) : (
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={subtaskContent}
+                onChange={(e) => setSubtaskContent(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddSubtask();
+                  }
+                  if (e.key === "Escape") {
+                    setShowSubtaskInput(false);
+                    setSubtaskContent("");
+                  }
+                }}
+                placeholder="subtask..."
+                className="flex-1 text-xs bg-transparent focus:outline-none"
+                style={{ color: c.text, caretColor: c.text }}
+                autoFocus
+              />
+              <button
+                onClick={handleAddSubtask}
+                className="text-[10px] hover:opacity-70"
+                style={{ color: c.muted }}
+              >
+                add
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Render subtasks recursively */}
+      {task.subtasks && task.subtasks.length > 0 && (
+        <div className="ml-6 mt-2 border-l pl-3" style={{ borderColor: c.borderSubtle }}>
+          {task.subtasks.map((subtask) => (
+            <TaskItem
+              key={subtask.id}
+              task={subtask}
+              onToggle={onToggle}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onAddSubtask={onAddSubtask}
+              compact={compact}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
       )}
     </motion.div>
   );

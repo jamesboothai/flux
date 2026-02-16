@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { useTheme, colors } from "@/lib/theme";
 import { TaskItem, WeeklyTask } from "./task-item";
-import { getDayName, isToday, getWeekDates } from "@/lib/week-utils";
+import { getDayName, isToday, getWeekDates, buildTaskTree } from "@/lib/week-utils";
 import { format } from "date-fns";
 
 interface DayViewProps {
@@ -15,6 +15,7 @@ interface DayViewProps {
   onToggleTask: (id: string, completed: boolean) => void;
   onEditTask: (id: string, content: string) => void;
   onDeleteTask: (id: string) => void;
+  onAddSubtask?: (parentId: string, content: string) => void;
 }
 
 export function DayView({
@@ -26,12 +27,14 @@ export function DayView({
   onToggleTask,
   onEditTask,
   onDeleteTask,
+  onAddSubtask,
 }: DayViewProps) {
   const [newTaskContent, setNewTaskContent] = useState("");
   const { theme } = useTheme();
   const c = colors(theme);
 
   const dayTasks = tasks.filter((t) => t.day_of_week === currentDay);
+  const taskTree = buildTaskTree(dayTasks);
   const weekDates = getWeekDates(weekOffset);
   const currentDate = weekDates[currentDay];
 
@@ -133,18 +136,19 @@ export function DayView({
 
       {/* Task list */}
       <div className="space-y-1">
-        {dayTasks.length === 0 ? (
+        {taskTree.length === 0 ? (
           <p className="text-sm italic py-4" style={{ color: c.faint }}>
             No tasks for this day
           </p>
         ) : (
-          dayTasks.map((task) => (
+          taskTree.map((task) => (
             <TaskItem
               key={task.id}
               task={task}
               onToggle={onToggleTask}
               onEdit={onEditTask}
               onDelete={onDeleteTask}
+              onAddSubtask={onAddSubtask}
             />
           ))
         )}

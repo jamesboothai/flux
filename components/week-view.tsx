@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { useTheme, colors } from "@/lib/theme";
 import { TaskItem, WeeklyTask } from "./task-item";
-import { getShortDayName, isToday, getWeekDates } from "@/lib/week-utils";
+import { getShortDayName, isToday, getWeekDates, buildTaskTree } from "@/lib/week-utils";
 import { format } from "date-fns";
 
 interface WeekViewProps {
@@ -13,6 +13,7 @@ interface WeekViewProps {
   onToggleTask: (id: string, completed: boolean) => void;
   onEditTask: (id: string, content: string) => void;
   onDeleteTask: (id: string) => void;
+  onAddSubtask?: (parentId: string, content: string) => void;
 }
 
 export function WeekView({
@@ -22,6 +23,7 @@ export function WeekView({
   onToggleTask,
   onEditTask,
   onDeleteTask,
+  onAddSubtask,
 }: WeekViewProps) {
   const [newTaskInputs, setNewTaskInputs] = useState<Record<number, string>>({});
   const { theme } = useTheme();
@@ -45,6 +47,7 @@ export function WeekView({
         {[0, 1, 2, 3, 4, 5, 6].map((day) => {
           const date = weekDates[day];
           const dayTasks = tasks.filter((t) => t.day_of_week === day);
+          const taskTree = buildTaskTree(dayTasks);
           const isTodayDate = isToday(date);
 
           return (
@@ -90,13 +93,14 @@ export function WeekView({
 
               {/* Task list */}
               <div className="space-y-0.5">
-                {dayTasks.map((task) => (
+                {taskTree.map((task) => (
                   <TaskItem
                     key={task.id}
                     task={task}
                     onToggle={onToggleTask}
                     onEdit={onEditTask}
                     onDelete={onDeleteTask}
+                    onAddSubtask={onAddSubtask}
                     compact
                   />
                 ))}

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { content, day_of_week, week_offset = 0 } = body;
+  const { content, day_of_week, week_offset = 0, parent_task_id } = body;
 
   if (!content || day_of_week === undefined) {
     return NextResponse.json(
@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
       content,
       day_of_week,
       week_offset,
+      parent_task_id: parent_task_id || null,
       completed: false,
     })
     .select()

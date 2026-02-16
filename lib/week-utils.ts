@@ -1,4 +1,5 @@
 import { format, startOfWeek, addDays, addWeeks } from "date-fns";
+import type { WeeklyTask } from "@/components/task-item";
 
 /**
  * Get the start of the current week (Sunday)
@@ -73,4 +74,37 @@ export function isToday(date: Date): boolean {
     date.getMonth() === today.getMonth() &&
     date.getFullYear() === today.getFullYear()
   );
+}
+
+/**
+ * Build a hierarchical task tree from a flat list of tasks
+ * @param tasks - Flat array of tasks with parent_task_id references
+ * @returns Array of top-level tasks with subtasks nested
+ */
+export function buildTaskTree(tasks: WeeklyTask[]): WeeklyTask[] {
+  const taskMap = new Map<string, WeeklyTask>();
+  const rootTasks: WeeklyTask[] = [];
+
+  // First pass: create map with subtasks array
+  tasks.forEach(task => {
+    taskMap.set(task.id, { ...task, subtasks: [] });
+  });
+
+  // Second pass: build tree structure
+  tasks.forEach(task => {
+    const taskWithSubtasks = taskMap.get(task.id)!;
+    if (task.parent_task_id) {
+      const parent = taskMap.get(task.parent_task_id);
+      if (parent) {
+        parent.subtasks!.push(taskWithSubtasks);
+      } else {
+        // Parent not found (orphaned subtask), add as root
+        rootTasks.push(taskWithSubtasks);
+      }
+    } else {
+      rootTasks.push(taskWithSubtasks);
+    }
+  });
+
+  return rootTasks;
 }
