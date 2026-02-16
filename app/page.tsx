@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ThoughtFeed } from "@/components/thought-feed";
+import { ScreenToggle } from "@/components/screen-toggle";
 import { supabase } from "@/lib/supabase";
 import { verifyToken } from "@/lib/auth";
 
@@ -31,20 +32,25 @@ export default async function Home() {
     thoughts.length === 50 ? thoughts[thoughts.length - 1].created_at : null;
 
   return (
-    <main className="max-w-2xl mx-auto px-6 py-12">
-      <header className="flex items-center justify-between mb-12">
-        <h1 className="text-xs text-[#333] tracking-widest">thoughtstream</h1>
-        <form action={logout}>
-          <button
-            type="submit"
-            className="text-[10px] text-[#333] hover:text-[#555] transition-colors cursor-pointer"
-          >
-            logout
-          </button>
-        </form>
-      </header>
+    <ScreenToggle>
+      <main className="max-w-2xl mx-auto px-6 py-12">
+        <header className="flex items-center justify-between mb-12">
+          <div>
+            <h1 className="text-xs text-[#333] tracking-widest">thoughtstream</h1>
+            <p className="text-[10px] text-[#222] mt-0.5">by james booth</p>
+          </div>
+          <form action={logout}>
+            <button
+              type="submit"
+              className="text-[10px] text-[#333] hover:text-[#555] transition-colors cursor-pointer"
+            >
+              logout
+            </button>
+          </form>
+        </header>
 
-      <ThoughtFeed initialThoughts={thoughts} initialCursor={nextCursor} />
-    </main>
+        <ThoughtFeed initialThoughts={thoughts} initialCursor={nextCursor} />
+      </main>
+    </ScreenToggle>
   );
 }
