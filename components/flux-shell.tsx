@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ThemeProvider, useTheme, colors } from "@/lib/theme";
 
 function FluxInner({
@@ -46,6 +47,14 @@ function FluxInner({
 
         {children}
       </main>
+
+      <Link
+        href="/tasks"
+        className="fixed bottom-6 left-6 text-[10px] tracking-wider hover:opacity-70 transition-opacity cursor-pointer"
+        style={{ color: c.faint }}
+      >
+        tasks
+      </Link>
 
       <button
         onClick={toggle}
