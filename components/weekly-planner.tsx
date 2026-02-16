@@ -51,10 +51,18 @@ export function WeeklyPlanner({ initialTasks, initialGoals }: WeeklyPlannerProps
   // Fetch tasks when week changes
   useEffect(() => {
     async function fetchTasks() {
-      const res = await fetch(`/api/tasks?week=${weekOffset}`);
-      if (res.ok) {
-        const data = await res.json();
-        setTasks(data);
+      try {
+        const res = await fetch(`/api/tasks?week=${weekOffset}`, {
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setTasks(data);
+        } else {
+          console.error('Failed to fetch tasks for week', weekOffset, 'Status:', res.status);
+        }
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
       }
     }
     fetchTasks();
@@ -62,81 +70,137 @@ export function WeeklyPlanner({ initialTasks, initialGoals }: WeeklyPlannerProps
 
   const handleAddTask = useCallback(
     async (content: string, dayOfWeek: number) => {
-      const res = await fetch("/api/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, day_of_week: dayOfWeek, week_offset: weekOffset }),
-      });
+      try {
+        const res = await fetch("/api/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content, day_of_week: dayOfWeek, week_offset: weekOffset }),
+          credentials: 'include',
+        });
 
-      if (res.ok) {
-        // Refetch all tasks to ensure sync with database
-        const refetchRes = await fetch(`/api/tasks?week=${weekOffset}`);
-        if (refetchRes.ok) {
-          const data = await refetchRes.json();
-          setTasks(data);
+        if (!res.ok) {
+          const error = await res.json();
+          console.error('Failed to create task:', error, 'Status:', res.status);
+          return;
         }
+
+        // Refetch all tasks to ensure sync with database
+        const refetchRes = await fetch(`/api/tasks?week=${weekOffset}`, {
+          credentials: 'include',
+        });
+
+        if (!refetchRes.ok) {
+          console.error('Failed to refetch tasks after creation. Status:', refetchRes.status);
+          return;
+        }
+
+        const data = await refetchRes.json();
+        setTasks(data);
+      } catch (error) {
+        console.error('Error adding task:', error);
       }
     },
     [weekOffset]
   );
 
   const handleToggleTask = useCallback(async (id: string, completed: boolean) => {
-    const res = await fetch("/api/tasks", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, completed }),
-    });
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, completed }),
+        credentials: 'include',
+      });
 
-    if (res.ok) {
+      if (!res.ok) {
+        console.error('Failed to toggle task. Status:', res.status);
+        return;
+      }
+
       const updated = await res.json();
       setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    } catch (error) {
+      console.error('Error toggling task:', error);
     }
   }, []);
 
   const handleEditTask = useCallback(async (id: string, content: string) => {
-    const res = await fetch("/api/tasks", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, content }),
-    });
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, content }),
+        credentials: 'include',
+      });
 
-    if (res.ok) {
+      if (!res.ok) {
+        console.error('Failed to edit task. Status:', res.status);
+        return;
+      }
+
       const updated = await res.json();
       setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    } catch (error) {
+      console.error('Error editing task:', error);
     }
   }, []);
 
   const handleDeleteTask = useCallback(async (id: string) => {
-    const res = await fetch(`/api/tasks?id=${id}`, { method: "DELETE" });
-    if (res.ok) {
+    try {
+      const res = await fetch(`/api/tasks?id=${id}`, {
+        method: "DELETE",
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        console.error('Failed to delete task. Status:', res.status);
+        return;
+      }
+
       setTasks((prev) => prev.filter((t) => t.id !== id));
+    } catch (error) {
+      console.error('Error deleting task:', error);
     }
   }, []);
 
   const handleAddSubtask = useCallback(
     async (parentId: string, content: string) => {
-      // Find parent task to get its day_of_week and week_offset
-      const parentTask = tasks.find(t => t.id === parentId);
-      if (!parentTask) return;
+      try {
+        // Find parent task to get its day_of_week and week_offset
+        const parentTask = tasks.find(t => t.id === parentId);
+        if (!parentTask) return;
 
-      const res = await fetch("/api/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content,
-          day_of_week: parentTask.day_of_week,
-          week_offset: parentTask.week_offset,
-          parent_task_id: parentId
-        }),
-      });
+        const res = await fetch("/api/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content,
+            day_of_week: parentTask.day_of_week,
+            week_offset: parentTask.week_offset,
+            parent_task_id: parentId
+          }),
+          credentials: 'include',
+        });
 
-      if (res.ok) {
-        // Refetch to get updated task tree
-        const refetchRes = await fetch(`/api/tasks?week=${weekOffset}`);
-        if (refetchRes.ok) {
-          const data = await refetchRes.json();
-          setTasks(data);
+        if (!res.ok) {
+          console.error('Failed to create subtask. Status:', res.status);
+          return;
         }
+
+        // Refetch to get updated task tree
+        const refetchRes = await fetch(`/api/tasks?week=${weekOffset}`, {
+          credentials: 'include',
+        });
+
+        if (!refetchRes.ok) {
+          console.error('Failed to refetch tasks after creating subtask. Status:', refetchRes.status);
+          return;
+        }
+
+        const data = await refetchRes.json();
+        setTasks(data);
+      } catch (error) {
+        console.error('Error adding subtask:', error);
       }
     },
     [tasks, weekOffset]
