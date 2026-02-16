@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, KeyboardEvent } from "react";
+import { useTheme, colors } from "@/lib/theme";
 
 interface ThoughtInputProps {
   onSubmit: (content: string) => void;
@@ -9,6 +10,8 @@ interface ThoughtInputProps {
 export function ThoughtInput({ onSubmit }: ThoughtInputProps) {
   const [content, setContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { theme } = useTheme();
+  const c = colors(theme);
 
   const handleSubmit = useCallback(() => {
     if (!content.trim()) return;
@@ -35,7 +38,10 @@ export function ThoughtInput({ onSubmit }: ThoughtInputProps) {
   }
 
   return (
-    <div className="border-b border-[#1a1a1a] pb-6 mb-8">
+    <div
+      className="pb-6 mb-8 border-b transition-colors"
+      style={{ borderColor: c.border }}
+    >
       <textarea
         ref={textareaRef}
         value={content}
@@ -47,14 +53,18 @@ export function ThoughtInput({ onSubmit }: ThoughtInputProps) {
         placeholder="what's on your mind..."
         autoFocus
         rows={1}
-        className="w-full bg-transparent text-[#e0e0e0] text-sm resize-none placeholder-[#333] focus:outline-none leading-relaxed"
+        className="w-full bg-transparent text-sm resize-none focus:outline-none leading-relaxed transition-colors"
+        style={{ color: c.text, caretColor: c.text }}
       />
       <div className="flex items-center justify-between mt-3">
-        <span className="text-[10px] text-[#333]">⌘+enter to post</span>
+        <span className="text-[10px]" style={{ color: c.faint }}>
+          ⌘+enter to post
+        </span>
         {content.trim() && (
           <button
             onClick={handleSubmit}
-            className="text-xs text-[#555] hover:text-[#888] transition-colors cursor-pointer"
+            className="text-xs hover:opacity-70 transition-opacity cursor-pointer"
+            style={{ color: c.muted }}
           >
             post
           </button>

@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { ThoughtInput } from "./thought-input";
 import { ThoughtEntry, Thought } from "./thought-entry";
+import { useTheme, colors } from "@/lib/theme";
 
 interface ThoughtFeedProps {
   initialThoughts: Thought[];
@@ -19,6 +20,8 @@ export function ThoughtFeed({
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
   const toastTimeout = useRef<ReturnType<typeof setTimeout>>(null);
+  const { theme } = useTheme();
+  const c = colors(theme);
 
   function showToast(message: string) {
     if (toastTimeout.current) clearTimeout(toastTimeout.current);
@@ -107,7 +110,6 @@ export function ThoughtFeed({
     setLoadingMore(false);
   }
 
-  // Infinite scroll
   useEffect(() => {
     if (!cursor) return;
 
@@ -144,26 +146,36 @@ export function ThoughtFeed({
       {cursor && (
         <div id="load-more-sentinel" className="py-8 text-center">
           {loadingMore && (
-            <span className="text-[10px] text-[#333]">loading...</span>
+            <span className="text-[10px]" style={{ color: c.faint }}>
+              loading...
+            </span>
           )}
         </div>
       )}
 
       {!cursor && thoughts.length > 0 && (
-        <p className="text-[10px] text-[#222] text-center py-8">
+        <p
+          className="text-[10px] text-center py-8"
+          style={{ color: c.faintest }}
+        >
           end of stream
         </p>
       )}
 
       {thoughts.length === 0 && (
-        <p className="text-[10px] text-[#333] text-center py-16">
+        <p
+          className="text-[10px] text-center py-16"
+          style={{ color: c.faint }}
+        >
           nothing here yet
         </p>
       )}
 
-      {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 text-[11px] text-[#888] bg-[#1a1a1a] px-4 py-2 rounded">
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 text-[11px] px-4 py-2 rounded transition-colors"
+          style={{ color: c.muted, backgroundColor: c.toast }}
+        >
           {toast}
         </div>
       )}

@@ -8,7 +8,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "thoughtstream",
+  title: "flux",
   description: "Raw thoughts. Nothing else.",
 };
 

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { motion } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
+import { useTheme, colors } from "@/lib/theme";
 
 export interface Thought {
   id: string;
@@ -40,6 +41,8 @@ export function ThoughtEntry({
   const [editContent, setEditContent] = useState(thought.content);
   const [showActions, setShowActions] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { theme } = useTheme();
+  const c = colors(theme);
 
   useEffect(() => {
     if (editing && textareaRef.current) {
@@ -73,7 +76,8 @@ export function ThoughtEntry({
       initial={isNew ? { opacity: 0, y: -8 } : false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="group py-4 border-b border-[#141414]"
+      className="group py-4 border-b transition-colors"
+      style={{ borderColor: c.borderSubtle }}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
@@ -88,12 +92,14 @@ export function ThoughtEntry({
               e.target.style.height = e.target.scrollHeight + "px";
             }}
             onKeyDown={handleKeyDown}
-            className="w-full bg-transparent text-[#e0e0e0] text-sm resize-none focus:outline-none leading-relaxed"
+            className="w-full bg-transparent text-sm resize-none focus:outline-none leading-relaxed transition-colors"
+            style={{ color: c.text }}
           />
           <div className="flex gap-3 mt-2">
             <button
               onClick={handleSave}
-              className="text-[10px] text-[#555] hover:text-[#888] transition-colors cursor-pointer"
+              className="text-[10px] hover:opacity-70 transition-opacity cursor-pointer"
+              style={{ color: c.muted }}
             >
               save
             </button>
@@ -102,7 +108,8 @@ export function ThoughtEntry({
                 setEditContent(thought.content);
                 setEditing(false);
               }}
-              className="text-[10px] text-[#555] hover:text-[#888] transition-colors cursor-pointer"
+              className="text-[10px] hover:opacity-70 transition-opacity cursor-pointer"
+              style={{ color: c.muted }}
             >
               cancel
             </button>
@@ -111,7 +118,8 @@ export function ThoughtEntry({
       ) : (
         <div>
           <p
-            className="text-sm text-[#e0e0e0] leading-relaxed whitespace-pre-wrap cursor-pointer"
+            className="text-sm leading-relaxed whitespace-pre-wrap cursor-pointer transition-colors"
+            style={{ color: c.text }}
             onClick={() => {
               setEditContent(thought.content);
               setEditing(true);
@@ -120,14 +128,15 @@ export function ThoughtEntry({
             {thought.content}
           </p>
           <div className="flex items-center gap-3 mt-2">
-            <span className="text-[10px] text-[#333]">
+            <span className="text-[10px]" style={{ color: c.faint }}>
               {formatTimestamp(thought.created_at)}
               {thought.updated_at && " (edited)"}
             </span>
             {showActions && (
               <button
                 onClick={() => onDelete(thought.id)}
-                className="text-[10px] text-[#333] hover:text-red-500/60 transition-colors cursor-pointer"
+                className="text-[10px] hover:text-red-500/60 transition-colors cursor-pointer"
+                style={{ color: c.faint }}
               >
                 delete
               </button>

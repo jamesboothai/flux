@@ -32,7 +32,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <form onSubmit={handleSubmit} className="w-full max-w-xs space-y-4">
-        <h1 className="text-sm text-[#555] tracking-wide">thoughtstream</h1>
+        <h1 className="text-sm text-[#555] tracking-wide">flux</h1>
         <input
           type="password"
           value={password}
