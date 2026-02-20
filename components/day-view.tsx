@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { Reorder } from "framer-motion";
 import { useTheme, colors } from "@/lib/theme";
 import { TaskItem, WeeklyTask } from "./task-item";
 import { getDayName, isToday, getWeekDates, buildTaskTree } from "@/lib/week-utils";
@@ -16,6 +17,7 @@ interface DayViewProps {
   onEditTask: (id: string, content: string) => void;
   onDeleteTask: (id: string) => void;
   onAddSubtask?: (parentId: string, content: string) => void;
+  onReorderTasks: (dayOfWeek: number, tasks: WeeklyTask[]) => void;
 }
 
 export function DayView({
@@ -28,6 +30,7 @@ export function DayView({
   onEditTask,
   onDeleteTask,
   onAddSubtask,
+  onReorderTasks,
 }: DayViewProps) {
   const [newTaskContent, setNewTaskContent] = useState("");
   const { theme } = useTheme();
@@ -135,24 +138,40 @@ export function DayView({
       </div>
 
       {/* Task list */}
-      <div className="space-y-1">
-        {taskTree.length === 0 ? (
-          <p className="text-sm italic py-4" style={{ color: c.faint }}>
-            No tasks for this day
-          </p>
-        ) : (
-          taskTree.map((task) => (
-            <TaskItem
+      {taskTree.length === 0 ? (
+        <p className="text-sm italic py-4" style={{ color: c.faint }}>
+          No tasks for this day
+        </p>
+      ) : (
+        <Reorder.Group
+          axis="y"
+          values={taskTree}
+          onReorder={(newOrder) => onReorderTasks(currentDay, newOrder)}
+          as="div"
+          className="space-y-1"
+        >
+          {taskTree.map((task) => (
+            <Reorder.Item
               key={task.id}
-              task={task}
-              onToggle={onToggleTask}
-              onEdit={onEditTask}
-              onDelete={onDeleteTask}
-              onAddSubtask={onAddSubtask}
-            />
-          ))
-        )}
-      </div>
+              value={task}
+              as="div"
+              whileDrag={{
+                scale: 1.02,
+                boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                cursor: "grabbing",
+              }}
+            >
+              <TaskItem
+                task={task}
+                onToggle={onToggleTask}
+                onEdit={onEditTask}
+                onDelete={onDeleteTask}
+                onAddSubtask={onAddSubtask}
+              />
+            </Reorder.Item>
+          ))}
+        </Reorder.Group>
+      )}
     </div>
   );
 }

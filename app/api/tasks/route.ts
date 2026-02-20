@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     .select("*")
     .eq("week_offset", weekOffset)
     .order("day_of_week", { ascending: true })
+    .order("position", { ascending: true })
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -47,15 +48,30 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Build insert object conditionally (parent_task_id column may not exist yet)
+  // Calculate next position for top-level tasks
+  let nextPosition = 0;
+  if (!parent_task_id) {
+    const { data: maxPosData } = await supabase
+      .from("weekly_tasks")
+      .select("position")
+      .eq("week_offset", week_offset)
+      .eq("day_of_week", day_of_week)
+      .is("parent_task_id", null)
+      .order("position", { ascending: false })
+      .limit(1)
+      .single();
+
+    nextPosition = (maxPosData?.position ?? -1) + 1;
+  }
+
   const insertData: any = {
     content,
     day_of_week,
     week_offset,
     completed: false,
+    position: nextPosition,
   };
 
-  // Only include parent_task_id if provided (requires migration to be run)
   if (parent_task_id) {
     insertData.parent_task_id = parent_task_id;
   }
@@ -73,6 +89,38 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(data);
 }
 
+export async function PUT(request: NextRequest) {
+  // Verify authentication
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+  if (!token || !(await verifyToken(token))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { tasks } = body;
+
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return NextResponse.json({ error: "Missing tasks array" }, { status: 400 });
+  }
+
+  const errors: string[] = [];
+  for (const { id, position } of tasks) {
+    const { error } = await supabase
+      .from("weekly_tasks")
+      .update({ position, updated_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (error) errors.push(`${id}: ${error.message}`);
+  }
+
+  if (errors.length > 0) {
+    return NextResponse.json({ error: errors.join("; ") }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}
+
 export async function PATCH(request: NextRequest) {
   // Verify authentication
   const cookieStore = await cookies();
@@ -82,7 +130,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { id, content, completed, day_of_week } = body;
+  const { id, content, completed, day_of_week, position } = body;
 
   if (!id) {
     return NextResponse.json({ error: "Missing task id" }, { status: 400 });
@@ -92,6 +140,7 @@ export async function PATCH(request: NextRequest) {
   if (content !== undefined) updates.content = content;
   if (completed !== undefined) updates.completed = completed;
   if (day_of_week !== undefined) updates.day_of_week = day_of_week;
+  if (position !== undefined) updates.position = position;
 
   const { data, error } = await supabase
     .from("weekly_tasks")

@@ -106,5 +106,7 @@ export function buildTaskTree(tasks: WeeklyTask[]): WeeklyTask[] {
     }
   });
 
+  rootTasks.sort((a, b) => a.position - b.position);
+
   return rootTasks;
 }

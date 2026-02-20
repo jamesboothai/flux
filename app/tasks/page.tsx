@@ -28,6 +28,7 @@ export default async function TasksPage() {
     .select("*")
     .eq("week_offset", 0)
     .order("day_of_week", { ascending: true })
+    .order("position", { ascending: true })
     .order("created_at", { ascending: true });
 
   // Fetch goals

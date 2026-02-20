@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { Reorder } from "framer-motion";
 import { useTheme, colors } from "@/lib/theme";
 import { TaskItem, WeeklyTask } from "./task-item";
 import { getShortDayName, isToday, getWeekDates, buildTaskTree } from "@/lib/week-utils";
@@ -14,6 +15,7 @@ interface WeekViewProps {
   onEditTask: (id: string, content: string) => void;
   onDeleteTask: (id: string) => void;
   onAddSubtask?: (parentId: string, content: string) => void;
+  onReorderTasks: (dayOfWeek: number, tasks: WeeklyTask[]) => void;
 }
 
 export function WeekView({
@@ -24,6 +26,7 @@ export function WeekView({
   onEditTask,
   onDeleteTask,
   onAddSubtask,
+  onReorderTasks,
 }: WeekViewProps) {
   const [newTaskInputs, setNewTaskInputs] = useState<Record<number, string>>({});
   const { theme } = useTheme();
@@ -92,19 +95,39 @@ export function WeekView({
               </div>
 
               {/* Task list */}
-              <div className="space-y-0.5">
-                {taskTree.map((task) => (
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    onToggle={onToggleTask}
-                    onEdit={onEditTask}
-                    onDelete={onDeleteTask}
-                    onAddSubtask={onAddSubtask}
-                    compact
-                  />
-                ))}
-              </div>
+              {taskTree.length > 0 ? (
+                <Reorder.Group
+                  axis="y"
+                  values={taskTree}
+                  onReorder={(newOrder) => onReorderTasks(day, newOrder)}
+                  as="div"
+                  className="space-y-0.5"
+                >
+                  {taskTree.map((task) => (
+                    <Reorder.Item
+                      key={task.id}
+                      value={task}
+                      as="div"
+                      whileDrag={{
+                        scale: 1.03,
+                        boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+                        cursor: "grabbing",
+                      }}
+                    >
+                      <TaskItem
+                        task={task}
+                        onToggle={onToggleTask}
+                        onEdit={onEditTask}
+                        onDelete={onDeleteTask}
+                        onAddSubtask={onAddSubtask}
+                        compact
+                      />
+                    </Reorder.Item>
+                  ))}
+                </Reorder.Group>
+              ) : (
+                <div className="space-y-0.5" />
+              )}
             </div>
           );
         })}

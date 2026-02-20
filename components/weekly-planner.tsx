@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTheme, colors } from "@/lib/theme";
 import { WeeklyTask } from "./task-item";
 import { DayView } from "./day-view";
@@ -163,6 +163,48 @@ export function WeeklyPlanner({ initialTasks, initialGoals }: WeeklyPlannerProps
     }
   }, []);
 
+  const reorderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleReorderTasks = useCallback(
+    (dayOfWeek: number, reorderedTasks: WeeklyTask[]) => {
+      const updatedPositions = reorderedTasks.map((task, index) => ({
+        id: task.id,
+        position: index,
+      }));
+
+      // Optimistic update
+      setTasks((prev) => {
+        const otherTasks = prev.filter(
+          (t) => t.day_of_week !== dayOfWeek || t.parent_task_id !== null
+        );
+        const reorderedWithPositions = reorderedTasks.map((task, index) => ({
+          ...task,
+          position: index,
+        }));
+        return [...otherTasks, ...reorderedWithPositions];
+      });
+
+      // Debounce the API call
+      if (reorderTimeoutRef.current) clearTimeout(reorderTimeoutRef.current);
+      reorderTimeoutRef.current = setTimeout(async () => {
+        try {
+          const res = await fetch("/api/tasks", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tasks: updatedPositions }),
+            credentials: "include",
+          });
+          if (!res.ok) {
+            console.error("Failed to save task order. Status:", res.status);
+          }
+        } catch (error) {
+          console.error("Error saving task order:", error);
+        }
+      }, 300);
+    },
+    []
+  );
+
   const handleAddSubtask = useCallback(
     async (parentId: string, content: string) => {
       try {
@@ -280,6 +322,7 @@ export function WeeklyPlanner({ initialTasks, initialGoals }: WeeklyPlannerProps
           onEditTask={handleEditTask}
           onDeleteTask={handleDeleteTask}
           onAddSubtask={handleAddSubtask}
+          onReorderTasks={handleReorderTasks}
         />
       ) : (
         <WeekView
@@ -290,6 +333,7 @@ export function WeeklyPlanner({ initialTasks, initialGoals }: WeeklyPlannerProps
           onEditTask={handleEditTask}
           onDeleteTask={handleDeleteTask}
           onAddSubtask={handleAddSubtask}
+          onReorderTasks={handleReorderTasks}
         />
       )}
     </div>
