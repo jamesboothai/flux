@@ -45,6 +45,7 @@ export function ThoughtFeed({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content }),
+      credentials: 'include',
     });
 
     if (res.ok) {
@@ -77,6 +78,7 @@ export function ThoughtFeed({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content }),
+      credentials: 'include',
     });
 
     if (!res.ok) {
@@ -89,7 +91,10 @@ export function ThoughtFeed({
     setThoughts((t) => t.filter((thought) => thought.id !== id));
     showToast("thought removed");
 
-    const res = await fetch(`/api/thoughts/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/thoughts/${id}`, {
+      method: "DELETE",
+      credentials: 'include',
+    });
     if (!res.ok) {
       setThoughts(prev);
       showToast("failed to delete");
@@ -101,7 +106,9 @@ export function ThoughtFeed({
     if (!cursor || loadingMore) return;
     setLoadingMore(true);
 
-    const res = await fetch(`/api/thoughts?cursor=${cursor}`);
+    const res = await fetch(`/api/thoughts?cursor=${cursor}`, {
+      credentials: 'include',
+    });
     if (res.ok) {
       const { thoughts: more, nextCursor } = await res.json();
       setThoughts((prev) => [...prev, ...more]);

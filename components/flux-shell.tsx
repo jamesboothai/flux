@@ -15,8 +15,6 @@ function FluxInner({
   const pathname = usePathname();
   const c = colors(theme);
 
-  const isTasksPage = pathname === "/tasks";
-
   return (
     <div
       className="min-h-screen transition-colors duration-300"
@@ -52,13 +50,35 @@ function FluxInner({
         {children}
       </main>
 
-      <Link
-        href={isTasksPage ? "/" : "/tasks"}
-        className="fixed bottom-6 left-6 text-[10px] tracking-wider hover:opacity-70 transition-opacity cursor-pointer"
-        style={{ color: c.faint }}
-      >
-        {isTasksPage ? "dump" : "tasks"}
-      </Link>
+      <nav className="fixed bottom-6 left-6 flex flex-col gap-1.5">
+        {pathname !== "/blocks" && (
+          <Link
+            href="/blocks"
+            className="text-[10px] tracking-wider hover:opacity-70 transition-opacity cursor-pointer"
+            style={{ color: c.faint }}
+          >
+            blocks
+          </Link>
+        )}
+        {pathname !== "/" && (
+          <Link
+            href="/"
+            className="text-[10px] tracking-wider hover:opacity-70 transition-opacity cursor-pointer"
+            style={{ color: c.faint }}
+          >
+            dump
+          </Link>
+        )}
+        {pathname !== "/tasks" && (
+          <Link
+            href="/tasks"
+            className="text-[10px] tracking-wider hover:opacity-70 transition-opacity cursor-pointer"
+            style={{ color: c.faint }}
+          >
+            tasks
+          </Link>
+        )}
+      </nav>
 
       <button
         onClick={toggle}
