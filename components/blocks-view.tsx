@@ -257,7 +257,7 @@ export function BlocksView({ initialBlocks, initialDate }: BlocksViewProps) {
                 type="text"
                 value={block?.content ?? ""}
                 onChange={(e) => handleChange(slot, e.target.value)}
-                className="flex-1 bg-transparent text-xs focus:outline-none transition-colors"
+                className="flex-1 min-w-0 bg-transparent text-xs focus:outline-none border-none p-0 h-6"
                 style={{
                   color: c.text,
                   caretColor: c.text,

@@ -51,33 +51,27 @@ function FluxInner({
       </main>
 
       <nav className="fixed bottom-6 left-6 flex flex-col gap-1.5">
-        {pathname !== "/blocks" && (
-          <Link
-            href="/blocks"
-            className="text-[10px] tracking-wider hover:opacity-70 transition-opacity cursor-pointer"
-            style={{ color: c.faint }}
-          >
-            blocks
-          </Link>
-        )}
-        {pathname !== "/" && (
-          <Link
-            href="/"
-            className="text-[10px] tracking-wider hover:opacity-70 transition-opacity cursor-pointer"
-            style={{ color: c.faint }}
-          >
-            dump
-          </Link>
-        )}
-        {pathname !== "/tasks" && (
-          <Link
-            href="/tasks"
-            className="text-[10px] tracking-wider hover:opacity-70 transition-opacity cursor-pointer"
-            style={{ color: c.faint }}
-          >
-            tasks
-          </Link>
-        )}
+        <Link
+          href="/blocks"
+          className="text-[10px] tracking-wider hover:opacity-70 transition-opacity cursor-pointer"
+          style={{ color: pathname === "/blocks" ? c.text : c.faint }}
+        >
+          blocks
+        </Link>
+        <Link
+          href="/"
+          className="text-[10px] tracking-wider hover:opacity-70 transition-opacity cursor-pointer"
+          style={{ color: pathname === "/" ? c.text : c.faint }}
+        >
+          dump
+        </Link>
+        <Link
+          href="/tasks"
+          className="text-[10px] tracking-wider hover:opacity-70 transition-opacity cursor-pointer"
+          style={{ color: pathname === "/tasks" ? c.text : c.faint }}
+        >
+          tasks
+        </Link>
       </nav>
 
       <button
