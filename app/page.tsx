@@ -27,6 +27,9 @@ export default async function Home() {
     .order("created_at", { ascending: false })
     .limit(50);
 
+  if (error) {
+    console.error("Failed to fetch thoughts:", error.message);
+  }
   const thoughts = error ? [] : data;
   const nextCursor =
     thoughts.length === 50 ? thoughts[thoughts.length - 1].created_at : null;
