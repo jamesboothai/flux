@@ -7,7 +7,7 @@ export interface WeeklyTask {
   id: string;
   content: string;
   day_of_week: number;
-  week_offset: number;
+  week_start: string;
   completed: boolean;
   created_at: string;
   updated_at: string | null;

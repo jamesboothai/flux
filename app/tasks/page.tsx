@@ -6,6 +6,7 @@ import { WeeklyPlanner } from "@/components/weekly-planner";
 import { GoalsSection } from "@/components/goals-section";
 import { supabase } from "@/lib/supabase";
 import { verifyToken } from "@/lib/auth";
+import { getWeekStartDate } from "@/lib/week-utils";
 
 async function logout() {
   "use server";
@@ -22,11 +23,12 @@ export default async function TasksPage() {
   const valid = await verifyToken(token);
   if (!valid) redirect("/login");
 
-  // Fetch current week tasks (week_offset = 0)
+  // Fetch current week tasks using absolute week_start date
+  const currentWeekStart = getWeekStartDate(0);
   const { data: tasksData, error: tasksError } = await supabase
     .from("weekly_tasks")
     .select("*")
-    .eq("week_offset", 0)
+    .eq("week_start", currentWeekStart)
     .order("day_of_week", { ascending: true })
     .order("position", { ascending: true })
     .order("created_at", { ascending: true });

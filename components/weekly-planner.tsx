@@ -9,6 +9,7 @@ import { GoalsSection, Goal } from "./goals-section";
 import {
   formatWeekRange,
   getWeekDates,
+  getWeekStartDate,
   getTodayDayOfWeek,
 } from "@/lib/week-utils";
 
@@ -52,7 +53,8 @@ export function WeeklyPlanner({ initialTasks, initialGoals }: WeeklyPlannerProps
   useEffect(() => {
     async function fetchTasks() {
       try {
-        const res = await fetch(`/api/tasks?week=${weekOffset}`, {
+        const weekStart = getWeekStartDate(weekOffset);
+        const res = await fetch(`/api/tasks?week_start=${weekStart}`, {
           credentials: 'include',
         });
         if (res.ok) {
@@ -71,10 +73,11 @@ export function WeeklyPlanner({ initialTasks, initialGoals }: WeeklyPlannerProps
   const handleAddTask = useCallback(
     async (content: string, dayOfWeek: number) => {
       try {
+        const weekStart = getWeekStartDate(weekOffset);
         const res = await fetch("/api/tasks", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content, day_of_week: dayOfWeek, week_offset: weekOffset }),
+          body: JSON.stringify({ content, day_of_week: dayOfWeek, week_start: weekStart }),
           credentials: 'include',
         });
 
@@ -85,7 +88,7 @@ export function WeeklyPlanner({ initialTasks, initialGoals }: WeeklyPlannerProps
         }
 
         // Refetch all tasks to ensure sync with database
-        const refetchRes = await fetch(`/api/tasks?week=${weekOffset}`, {
+        const refetchRes = await fetch(`/api/tasks?week_start=${weekStart}`, {
           credentials: 'include',
         });
 
@@ -208,7 +211,7 @@ export function WeeklyPlanner({ initialTasks, initialGoals }: WeeklyPlannerProps
   const handleAddSubtask = useCallback(
     async (parentId: string, content: string) => {
       try {
-        // Find parent task to get its day_of_week and week_offset
+        // Find parent task to get its day_of_week and week_start
         const parentTask = tasks.find(t => t.id === parentId);
         if (!parentTask) return;
 
@@ -218,7 +221,7 @@ export function WeeklyPlanner({ initialTasks, initialGoals }: WeeklyPlannerProps
           body: JSON.stringify({
             content,
             day_of_week: parentTask.day_of_week,
-            week_offset: parentTask.week_offset,
+            week_start: parentTask.week_start,
             parent_task_id: parentId
           }),
           credentials: 'include',
@@ -230,7 +233,8 @@ export function WeeklyPlanner({ initialTasks, initialGoals }: WeeklyPlannerProps
         }
 
         // Refetch to get updated task tree
-        const refetchRes = await fetch(`/api/tasks?week=${weekOffset}`, {
+        const weekStart = getWeekStartDate(weekOffset);
+        const refetchRes = await fetch(`/api/tasks?week_start=${weekStart}`, {
           credentials: 'include',
         });
 

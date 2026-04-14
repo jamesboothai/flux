@@ -1,4 +1,4 @@
-import { format, startOfWeek, addDays, addWeeks } from "date-fns";
+import { format, startOfWeek, addDays, addWeeks, formatISO } from "date-fns";
 import type { WeeklyTask } from "@/components/task-item";
 
 /**
@@ -62,6 +62,16 @@ export function getShortDayName(dayOfWeek: number): string {
  */
 export function getTodayDayOfWeek(): number {
   return getDayOfWeek(new Date());
+}
+
+/**
+ * Get the week_start date string (YYYY-MM-DD) for a given week offset.
+ * week_start is always the Sunday of that week.
+ * @param offset - 0 = current week, -1 = last week, 1 = next week
+ */
+export function getWeekStartDate(offset: number = 0): string {
+  const weekStart = addWeeks(getCurrentWeekStart(), offset);
+  return format(weekStart, "yyyy-MM-dd");
 }
 
 /**

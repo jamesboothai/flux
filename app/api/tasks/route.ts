@@ -11,14 +11,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Get week offset from query params
+  // Get week_start date from query params (YYYY-MM-DD)
   const { searchParams } = new URL(request.url);
-  const weekOffset = parseInt(searchParams.get("week") || "0", 10);
+  const weekStart = searchParams.get("week_start");
+
+  if (!weekStart) {
+    return NextResponse.json({ error: "Missing week_start param" }, { status: 400 });
+  }
 
   const { data, error } = await supabase
     .from("weekly_tasks")
     .select("*")
-    .eq("week_offset", weekOffset)
+    .eq("week_start", weekStart)
     .order("day_of_week", { ascending: true })
     .order("position", { ascending: true })
     .order("created_at", { ascending: true });
@@ -39,9 +43,9 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { content, day_of_week, week_offset = 0, parent_task_id } = body;
+  const { content, day_of_week, week_start, parent_task_id } = body;
 
-  if (!content || day_of_week === undefined) {
+  if (!content || day_of_week === undefined || !week_start) {
     return NextResponse.json(
       { error: "Missing required fields" },
       { status: 400 }
@@ -54,7 +58,7 @@ export async function POST(request: NextRequest) {
     const { data: maxPosData } = await supabase
       .from("weekly_tasks")
       .select("position")
-      .eq("week_offset", week_offset)
+      .eq("week_start", week_start)
       .eq("day_of_week", day_of_week)
       .is("parent_task_id", null)
       .order("position", { ascending: false })
@@ -67,7 +71,7 @@ export async function POST(request: NextRequest) {
   const insertData: any = {
     content,
     day_of_week,
-    week_offset,
+    week_start,
     completed: false,
     position: nextPosition,
   };
